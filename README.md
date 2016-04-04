@@ -1,8 +1,3 @@
-# Contents
-- [X-Ray Absorption Spectroscopy (XAS.py)](#x-ray-absorption-spectroscopy-(xas.py)
--   Example
-- 
-
 # X-Ray Absorption Spectroscopy (XAS.py)
 
 ## Installation
