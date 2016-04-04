@@ -51,11 +51,11 @@ show()
 ### Aligning STD data to account for beamdrift
 
 ```python
-#Find the peak max value between 530 eV and 540 eV and set the x value to 'x_target'
-x_target, y = sample_a.max_in_range('STD', low=530, high=540, plot=False, do_return=True)
+#Find the peak max value between 705 eV and 710 eV and set the x value to 'x_target'
+x_target, y = sample_a.max_in_range('STD', low=705, high=710, plot=False, do_return=True)
 
 #Assign the sample_b peak max value to x1 within the same range
-x1, y1 = sample_b.max_in_range('STD', low=530, high=540, plot=False, do_return=True)
+x1, y1 = sample_b.max_in_range('STD', low=705, high=710, plot=False, do_return=True)
 
 #Align the sample_b object to sample_a
 sample_b.align(x1, x_target)
