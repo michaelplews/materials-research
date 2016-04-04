@@ -13,7 +13,7 @@
 from . import XAS as xas
 
 dire = "./data/4-ID-C/my_data/" #The directory that contains your data
-base = "MyData" 							#The base name for all your files (e.g. MyData.0001"
+base = "MyData" 				#The base name for all your files (e.g. MyData.0001)
 
 my_sample = xas.IDC4(dire, base, start="1", end="2", shortname = "My Sample")
 ```
@@ -32,7 +32,7 @@ This plots the 'STD' or Standard data. Other options include 'TEY' (Electron Yie
 ### Loading each sample edge into a IDC4 object
 
 ```python
-dire = "./data/4-ID-C/my_data/" #The directory that contains your data
+dire = "./data/4-ID-C/my_data/"
 base = "MyData" 
 sample_a = xas.IDC4(dire, base, start="248", end="250", shortname ='Sample A') 
 sample_b = xas.IDC4(dire, base, start="244", end="246", shortname = 'Sample B')
