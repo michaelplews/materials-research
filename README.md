@@ -59,4 +59,14 @@ x1, y1 = sample_b.max_in_range('STD', low=530, high=540, plot=False, do_return=T
 
 #Align the sample_b object to sample_a
 sample_b.align(x1, x_target)
+
+#Replot STD data
+fig = plt.figure(1, figsize=(16, 4))
+
+sample_a.plot('STD', color='black')
+sample_b.plot('STD', color='red')
+plt.xlabel(r'Energy / eV', fontsize=15)
+
+show()
 ```
+![After Alignment](./examples/images/AfterAlign.jpg "After Alignment")
