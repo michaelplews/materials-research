@@ -47,6 +47,7 @@ plt.xlabel(r'Energy / eV', fontsize=15)
 
 show()
 ```
+![Before Alignment](./examples/images/BeforeAlign.jpg "Before Alignment")
 ### Aligning STD data to account for beamdrift
 
 ```python
