@@ -116,10 +116,10 @@ show()
 
 ## Use
 
-- The `BrukerBrmlFile` object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to ![m3wolf/scimap project](https://github.com/m3wolf/scimap). 
+- The `BrukerBrmlFile` object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to [m3wolf/scimap project](https://github.com/m3wolf/scimap). 
 - The `XYFile` object imports .xy (ASCII) files taken on the above diffractometer (if .brml file is unavailable)
 - `ICDDXmlFile` object imports .xml files exported from 'PDF-2 2013' software to add line patterns for reference materials.
-- `MaterProjJSON` object imports the .json files downloaded from ![The Materials Project](https://www.materialsproject.org/) to add line patterns for reference materials.
+- `MaterProjJSON` object imports the .json files downloaded from [The Materials Project](https://www.materialsproject.org/) to add line patterns for reference materials.
 
 ## Example
 
@@ -192,7 +192,7 @@ show()
 
 ## Requirements
 
-This script is a wrapper for ![_dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/get/b7500989b83a.zip) which should be placed in the same folder as this script. See ![documentation for _dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/) for use. This is included in the `requirements.txt` file.
+This script is a wrapper for [_dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/get/b7500989b83a.zip) which should be placed in the same folder as this script. See [documentation for _dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/) for use. This is included in the `requirements.txt` file.
 
 ## Other functions
 ```python
