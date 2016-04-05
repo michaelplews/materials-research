@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 ## Use
 
-- The `ICD4` object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
+- The `IDC4` object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
 - Syntax for use is as follows:
 ```python
 from . import XAS as xas
