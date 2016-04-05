@@ -146,8 +146,10 @@ show()
 
 ## Use
 
-- The `MPTFile` and `processedMPTFile` objects exports data collected on Bio-Logic machines. Tested on VMP3, BCS, and SP-50 models.
-- Syntax is as follows:
+- The `MPTFile` and `processedMPTFile` objects exports data collected on Bio-Logic machines. 
+- Tested on VMP3, BCS, and SP-50 models.
+
+## Example
 
 ```python
 from . import EChem as echem
