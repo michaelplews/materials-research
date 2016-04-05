@@ -23,7 +23,7 @@ easy_install requirements.txt
 
 ## Use
 
-- The ICD4 object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
+- The `ICD4` object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
 - Syntax for use is as follows:
 ```python
 from . import XAS as xas
@@ -91,7 +91,7 @@ show()
 
 ## Use
 
-- The TGAFile object loads data to an object from a .txt file created in Universal Analysis 2000 by TA Instruments.
+- The `TGAFile` object loads data to an object from a .txt file created in Universal Analysis 2000 by TA Instruments.
 
 ## Example
 
@@ -116,10 +116,10 @@ show()
 
 ## Use
 
-- The BrukerBrmlFile object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to ![m3wolf/scimap project](https://github.com/m3wolf/scimap). 
-- The XYFile object imports .xy (ASCII) files taken on the above diffractometer (if .brml file is unavailable)
-- ICDDXmlFile object imports .xml files exported from 'PDF-2 2013' software to add line patterns for reference materials.
-- MaterProjJSON object imports the .json files downloaded from ![The Materials Project](https://www.materialsproject.org/) to add line patterns for reference materials.
+- The `BrukerBrmlFile` object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to ![m3wolf/scimap project](https://github.com/m3wolf/scimap). 
+- The `XYFile` object imports .xy (ASCII) files taken on the above diffractometer (if .brml file is unavailable)
+- `ICDDXmlFile` object imports .xml files exported from 'PDF-2 2013' software to add line patterns for reference materials.
+- `MaterProjJSON` object imports the .json files downloaded from ![The Materials Project](https://www.materialsproject.org/) to add line patterns for reference materials.
 
 ## Example
 
@@ -131,7 +131,7 @@ fig = plt.figure(1, figsize=(16, 5))
 
 plt.subplot(211)
 my_sample.plot(color='black')
-hide_x_axis()
+hide_x_axis() # a custom function not included in this repo
 
 plt.subplot(212)
 ref_LiF.plot('red')
@@ -146,7 +146,7 @@ show()
 
 ## Use
 
-- The MPTFile and processedMPTFile objects exports data collected on Bio-Logic machines. Tested on VMP3, BCS, and SP-50 models.
+- The `MPTFile` and `processedMPTFile` objects exports data collected on Bio-Logic machines. Tested on VMP3, BCS, and SP-50 models.
 - Syntax is as follows:
 
 ```python
@@ -192,7 +192,7 @@ show()
 
 ## Requirements
 
-This script is a wrapper for ![_dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/get/b7500989b83a.zip) which should be placed in the same folder as this script. See ![documentation for _dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/) for use. This is included in the requirements.txt file.
+This script is a wrapper for ![_dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/get/b7500989b83a.zip) which should be placed in the same folder as this script. See ![documentation for _dm3_lib.py](https://bitbucket.org/piraynal/pydm3reader/) for use. This is included in the `requirements.txt` file.
 
 ## Other functions
 ```python
