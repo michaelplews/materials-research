@@ -19,7 +19,7 @@ class TGAFile(object):
     def __init__(self, filename, shortname=""):
         self.filename = filename
         self.shortname = shortname
-        file = open(filename, 'r')
+        file = open(filename, 'r', encoding='latin-1')
         i = 0
         self.signal = []
         for line in file:
@@ -91,9 +91,9 @@ class TGAFile(object):
         """Calculates percent mass based on column indices provided as arguments. Defaults are x=1, y=2"""
         percent = self.weight_percent(y)
         if color:
-            plt.plot(self.data_array[x], percent, color=color, linewidth=1.5, label=self.sample)
+            plt.plot(self.data_array[x], percent, color=color, linewidth=1.5, label=self.shortname)
         else:
-            plt.plot(self.data_array[x], percent, color=self.color, linewidth=1.5, label=self.sample)
+            plt.plot(self.data_array[x], percent, color=self.color, linewidth=1.5, label=self.shortname)
         plt.ylabel(r'Weight Percent / %', fontsize=12)
         plt.xlabel(self.signal[x], fontsize=12)
         legend = plt.legend(loc=1, frameon = 1, fontsize=15, framealpha=1)

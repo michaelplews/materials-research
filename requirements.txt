@@ -1,0 +1,2 @@
+https://bitbucket.org/piraynal/pydm3reader/get/b7500989b83a.zip
+units==0.6
