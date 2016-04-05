@@ -96,7 +96,7 @@ my_sample = tga.TGAFile("../path/to/file.txt", shortname=r'My Sample')
 
 fig = plt.figure(1, figsize=(6, 4))
 
-#plots weight percent ont he y axis
+#plots weight percent on the y axis
 my_sample.plot_percent()
 
 #plots a point and hline for a given x value 
@@ -112,7 +112,7 @@ show()
 
 ## Use
 
-- The `BrukerBrmlFile` object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to [m3wolf/scimap project](https://github.com/m3wolf/scimap). 
+- The `BrukerBrmlFile` object imports v4 .brml files taken on a Bruker D8 Advance diffractometer (credit to [m3wolf/scimap project](https://github.com/m3wolf/scimap)). 
 - The `XYFile` object imports .xy (ASCII) files taken on the above diffractometer (if .brml file is unavailable)
 - `ICDDXmlFile` object imports .xml files exported from 'PDF-2 2013' software to add line patterns for reference materials.
 - `MaterProjJSON` object imports the .json files downloaded from [The Materials Project](https://www.materialsproject.org/) to add line patterns for reference materials.
