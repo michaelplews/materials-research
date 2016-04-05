@@ -1,10 +1,10 @@
 # Contents
-1. ![Requirements](#requirements)
-2. ![X-Ray Absorption Spectroscopy (XAS.py)](#x-ray-absorption-spectroscopy-xaspy)
-3. ![Thermogravimetric Analysis (TGA.py)](#thermogravimetric-analysis-tgapy)
-4. ![X-Ray Diffraction (XRD.py)](#x-ray-diffraction-xrdpy)
-5. ![Electrochemistry (EChem.py)](#electrochemistry-echempy)
-6. ![Transmission Electron Microscopy (TEM.py)](#transmission-electron-microscopy-tempy)
+1. [Requirements](#requirements)
+2. [X-Ray Absorption Spectroscopy (XAS.py)](#x-ray-absorption-spectroscopy-xaspy)
+3. [Thermogravimetric Analysis (TGA.py)](#thermogravimetric-analysis-tgapy)
+4. [X-Ray Diffraction (XRD.py)](#x-ray-diffraction-xrdpy)
+5. [Electrochemistry (EChem.py)](#electrochemistry-echempy)
+6. [Transmission Electron Microscopy (TEM.py)](#transmission-electron-microscopy-tempy)
 
 # Requirements
 
@@ -174,6 +174,8 @@ Output:
 14 | x
 15 | Capacity/mA.h
 ```
+
+Plotting the data:
 ```python
 fig = plt.figure(1, figsize=(6, 4))
 
