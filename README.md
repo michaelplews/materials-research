@@ -9,13 +9,13 @@
 # Requirements
 
 Requirements can be installed with:
-```python
+```bash
 pip install requirements.txt
 ```
 
 or 
 
-```python
+```bash
 easy_install requirements.txt
 ```
 
@@ -96,6 +96,8 @@ show()
 ## Example
 
 ```python
+from . import TGA as tga
+
 my_sample = tga.TGAFile("../path/to/file.txt", shortname=r'My Sample')
 
 fig = plt.figure(1, figsize=(6, 4))
@@ -124,6 +126,8 @@ show()
 ## Example
 
 ```python
+from . import XRD as xrd
+
 my_sample = xrd.BrukerBrmlFile("./path/to/file.brml", shortname=r'LiF as purchased')
 ref_LiF = xrd.ICDDXmlFile("./path/to/file.xml") #defaults to the file name for the legend
 
