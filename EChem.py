@@ -17,21 +17,42 @@ class processedMPTFile(object):
 	mass_am = ""
 	mol_weight = ""
 	surface_area = ""
-	skip_line = 0
+	skip_line = 1
 	data_array = ""
 	start_of_method = 3
+	efficiency_column = 0
+	capacity_column = 0
+	cycle_number_column = 0
 	   
 	def _lines_to_skip(self, filename):
 		file = open(filename, 'r', encoding='latin-1')
 		for line in file:
 			if "Nb header lines : " in line:
 				return int(line.strip("Nb header lines : "))
+				break
+		return 1
 	
+	def _get_columns(self):
+		file = open(self.filename, 'r', encoding='latin-1')
+		line = file.readlines()[self.skip_line-1]
+		columns = line.split('\t')
+		return columns
+
 	def __init__(self, filename, shortname=""):
+		columns = []
+		self.comments = []
 		self.filename = filename
 		self.shortname = shortname
 		self.skip_line = self._lines_to_skip(filename)
 		file = open(filename, 'r', encoding='latin-1')
+		columns = self._get_columns()
+		for column in range(0, len(columns)):
+			if 'cycle number' in columns[column]: 			
+				self.cycle_number_column = column
+			if 'Q discharge' in columns[column]:
+				self.capacity_column = column
+			if 'Efficiency' in columns[column]:
+				self.efficiency_column = column
 		i = 0
 		for line in file:
 			i += 1
@@ -119,6 +140,7 @@ class MPTFile(object):
 				return int(line.strip("Nb header lines : "))
 	
 	def __init__(self, filename, shortname=""):
+		self.comments = []
 		self.filename = filename
 		self.shortname = shortname
 		self.skip_line = self._lines_to_skip(filename)
@@ -185,8 +207,8 @@ class MPTFile(object):
 		ret[n:] = ret[n:] - ret[:-n]
 		return ret[n - 1:] / n
 	
-	def plot(self, x, y, legend="", color="red", cycle=0, cycle_column="" ):
-		if cycle:
+	def plot(self, x, y, legend="", color="red", cycle='', cycle_column="", disconnect=False, end_point=False, end_point_color='', linewidth=1.5, *args, **kwargs):
+		if cycle or cycle is 0:
 			xdata, ydata=[],[]
 			for data_point in range (0, len(self.data_array[cycle_column])):
 				if self.data_array[cycle_column][data_point] == cycle:
@@ -195,24 +217,47 @@ class MPTFile(object):
 					#print (xdata, ydata)
 				else:
 					pass 
-			if legend:
-				plt.plot(xdata,ydata, color=color, linewidth=1.5, label=legend)
-			elif self.shortname:
-				plt.plot(xdata,ydata, color=color, linewidth=1.5, label=self.shortname)
+			if disconnect:
+				pos = np.where(np.abs(np.diff(xdata)) >= 0.001 )[0]+1
+				xdata = np.insert(xdata, pos, np.nan)
+				ydata = np.insert(ydata, pos, np.nan)
 			else:
-				plt.plot(xdata,ydata, color=color, linewidth=1.5, label="no_label")
-
+				pass			
+			if legend is "None":
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth)
+			elif legend:
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth, label=legend)
+			elif self.shortname:
+				plt.plot(xdata,ydata, color=color, linewidth=linewidth, label=self.shortname)
+			else:
+				plt.plot(xdata,ydata, color=color, linewidth=linewidth, label="no_label")
+		
 		else:
-			if legend:
-				plt.plot(self.data_array[x],self.data_array[y], color=color, linewidth=1.5, label=legend)
-			elif self.shortname:
-				plt.plot(self.data_array[x],self.data_array[y], color=color, linewidth=1.5, label=self.shortname)
+			xdata, ydata = self.data_array[x], self.data_array[y]
+			if disconnect:
+				pos = np.where(np.abs(np.diff(xdata)) >= 0.01 )[0]+1
+				xdata = np.insert(xdata, pos, np.nan)
+				ydata = np.insert(xdata, pos, np.nan)
 			else:
-				plt.plot(self.data_array[x],self.data_array[y], color=color, linewidth=1.5, label="no_label")
+				pass
+			if legend is "None":
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth)
+			elif legend:
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth, label=legend)
+			elif self.shortname:
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth, label=self.shortname)
+			else:
+				plt.plot(xdata, ydata, color=color, linewidth=linewidth, label="no_label")
+		if end_point:
+			if end_point_color:
+				plt.scatter(self.data_array[x][-1], self.data_array[y][-1], color=end_point_color, *args, **kwargs)
+			else:
+				plt.scatter(self.data_array[x][-1], self.data_array[y][-1], color=color, *args, **kwargs)
 		plt.legend(loc = 1, frameon = False)
 		plt.xlim(np.amin(self.data_array[x])-0.1,np.amax(self.data_array[x])+0.1)
 		plt.ylim(np.amin(self.data_array[y])-0.2,np.amax(self.data_array[y])+0.2)
-		
+
+
 	def plot_diffcap(self, x=10, y=22, n=5, legend="", color="red"):
 		"""Plots differential capacity. Moving average of n=5 by default"""
 		Ecell = self.data_array[x]
