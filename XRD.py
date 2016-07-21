@@ -355,7 +355,7 @@ def retro_plot_xrd(filename, color="red", legend="", number_of_stacked=0):
 	else:
 		plt.plot(data['x'], data['y'], linewidth = 1, label='no_label', color=color)
 	plt.axis([10, 80, -10, 110 + number_of_stacked*10])
-		plt.legend(loc = 1).draggable(True)				# fontsize and other parameters removed as we now pickle our pgf styles
+	plt.legend(loc = 1).draggable(True)				# fontsize and other parameters removed as we now pickle our pgf styles
 	plt.subplots_adjust(hspace=0)	
 	
 def plot_xrd(object, color="red", legend="", number_of_stacked=0):
@@ -369,5 +369,5 @@ def plot_xrd(object, color="red", legend="", number_of_stacked=0):
 	else:
 		plt.plot(data['x'], data['y'], linewidth = 1, label='no_label', color=color)
 	plt.axis([10, 80, -10, 110 + number_of_stacked*10])
-		plt.legend(loc = 1).draggable(True)				# fontsize and other parameters removed as we now pickle our pgf styles
+	plt.legend(loc = 1).draggable(True)				# fontsize and other parameters removed as we now pickle our pgf styles
 	plt.subplots_adjust(hspace=0)
