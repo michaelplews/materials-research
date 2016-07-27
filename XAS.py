@@ -57,7 +57,7 @@ class _MDAdatafile(object):
 		self.column_index = []
 		self.header_lines = header_lines
 		i = 0
-		if flavour == "ICD4":
+		if flavour == "IDC4":
 			for line in file:
 				i += 1
 				if '# 1-D Scan Values' in line:
@@ -127,7 +127,7 @@ class IDC4(object):
 		#More dataframes can be appended if needed
 		self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY')
 		self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'TFY', smooth=TFY_smooth)
-		self._AddLog('TFY smoothed: rolling mean window = 7')
+		self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
 		self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY')	
 		self.normalized_dataframe['STD'] = self._ScaleRef(self.STD_id, 'STD')
 
@@ -293,12 +293,15 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 	REF_id = None
 	STD_id = None
 
-	def __init__(self, directory, basename, start, end, exclude=None, shortname="", TFY_smooth=7):
+	def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", TFY_smooth=7):
 		self._log = []	#reset the log to be empty
 		self.directory = directory
 		self.basename = basename
 		self.start = int(start)
-		self.end = int(end)
+		if end:
+			self.end = int(end)
+		else:
+			self.end = int(start)
 		self.shortname = shortname
 		self._MDAlist = []
 		if exclude and type(exclude) is list:
@@ -314,8 +317,8 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 
 		#More dataframes can be appended if needed
 		self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id)
-		self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id, smooth=TFY_smooth)
-		self._AddLog('TFY smoothed: rolling mean window = 7')
+		self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth)
+		self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
 		self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_up_id, 'TEY', divisor=self.I0_id)	
 		self._AddLog('TFY, sTFY and TEY divided by I0')
 
@@ -389,8 +392,8 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 	def _SumData(self):
 		"""Internal function. Averages data across multiple _MDAFile objects"""
 		normalized_dataframe = []
-#		normalized_dataframe = pd.concat([scan.dataframe for scan in self._MDAlist]).groupby(level=0).mean()
-		normalized_dataframe = [scan.dataframe for scan in self._MDAlist]
+		normalized_dataframe = pd.concat([scan.dataframe for scan in self._MDAlist]).groupby(level=0).mean()
+#		normalized_dataframe = pd.Dataframe([scan.dataframe for scan in self._MDAlist])
 		return normalized_dataframe
 
 	def _ScaleAbs(self, column_id, name, divisor=None, head=5, tail=5, smooth=None):
