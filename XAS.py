@@ -270,7 +270,7 @@ class ALS6312(object):
 	$ for i in SigScan* ; do mv "$i" "${i%".txt"}" ; done
 	$ for i in SigScan* ; do mv "$i" "${i/#"SigScan"/"SigScan."}" ; done
 
-This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This makes it easier to use the IDC4 object code.
+This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This makes it easier to use the prewritten IDC4 object code.
 
 """
 	directory = ""
@@ -287,13 +287,12 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 	#Variables that will change if instrument set up is adjusted
 	Energy_id = 'Energy'	
 	TFY_id = 'Channeltron'
-	TEY_up_id = 'TEY_up'
-	TEY_dn_id = 'TEY_dn'
+	TEY_id = 'TEY_up'
 	I0_id = 'Izero'
 	REF_id = None
 	STD_id = None
 
-	def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", TFY_smooth=7):
+	def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim=""):
 		self._log = []	#reset the log to be empty
 		self.directory = directory
 		self.basename = basename
@@ -307,7 +306,7 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 		if exclude and type(exclude) is list:
 			self.exclude = list(map(int, exclude))
 		elif exclude and type(exclude) is str:
-			self.exclude = list(map(int, str(exclude)))	   
+			self.exclude = list(map(int, str(exclude)))
 		self._MDAlist = [_MDAdatafile(directory + basename + '.' + str(ext), flavour='ALS') 
 						for ext in range(self.start, self.end+1)
 						if ext not in self.exclude]
@@ -319,7 +318,10 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 		self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id)
 		self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth)
 		self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
-		self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_up_id, 'TEY', divisor=self.I0_id)	
+		if tey_detector:
+			self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=self.I0_id, trim=trim)
+		else:
+			self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=self.I0_id, trim=trim)
 		self._AddLog('TFY, sTFY and TEY divided by I0')
 
 		#Tidy into a seperate processed dataframe
@@ -411,13 +413,17 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
 			new_frame -= new_frame.tail(tail).mean()
 			new_frame /= new_frame.head(head).mean()
 		if smooth:
-			new_frame = pd.rolling_mean(new_frame, smooth, smooth, center=True) 
+			new_frame = pd.Series.rolling(new_frame, window=smooth,center=True,min_periods=smooth).mean()		#Updated due to future warning
+#			new_frame = pd.rolling_mean(new_frame, smooth, smooth, center=True) 
 		new_frame.columns = ['Rounded Energy / eV', name]
 		return new_frame
 
-	def _ScaleRef(self, column_id, name, divisor=None):
+	def _ScaleRef(self, column_id, name, divisor=None, trim=""):
 		"""Internal function. Scaled data between 1 and 0 irrespective of wave shape"""
-		new_frame = self.normalized_dataframe[column_id].copy()
+		if trim:		
+			new_frame = self.normalized_dataframe[column_id].iloc[trim[0]:trim[1]].copy()
+		else:
+			new_frame = self.normalized_dataframe[column_id].copy()
 		if divisor:
 			new_frame = new_frame/self.normalized_dataframe[divisor].copy()
 		new_frame -= new_frame.min()
