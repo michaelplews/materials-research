@@ -197,8 +197,10 @@ class ICDDXmlFile(object):
 		root = tree.getroot()
 		formula = root.find('.//chemical_formula')
 		self.shortname = formula.text
-		xtal = root.find('.//xstal_system')
-		self.xtal_system = xtal.text
+		try:
+			self.xtal_system = xtal.text
+		except:
+			pass
 		pdf = root.find('.//pdf_number')
 		self.pdf_number = pdf.text
 		legend = filename[:-4].split(r'/')
@@ -213,7 +215,7 @@ class ICDDXmlFile(object):
 		theta_list, intensity_list, h_list, k_list, l_list, hkl_list, d_list = [],[],[],[],[],[],[]
 
 		for theta in root.findall('.//theta'):
-			theta_list.append(theta.text)
+			theta_list.append(float(theta.text))
 
 		for intensity in root.findall('.//intensity/intensity'):
 			intensity_list.append(intensity.text)
@@ -228,7 +230,10 @@ class ICDDXmlFile(object):
 			l_list.append(l.text)
 		
 		for h in range (0, len(h_list)):
-			hkl_list.append(str(h_list[h] + k_list[h] + l_list[h]))
+			try:
+				hkl_list.append(str(h_list[h] + k_list[h] + l_list[h]))
+			except:
+				pass
 
 		for d in root.findall('.//intensity/da'):
 			d_list.append(float(d.text))

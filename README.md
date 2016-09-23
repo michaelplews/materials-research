@@ -206,3 +206,13 @@ show()
 
 This .plot() function plots a TEM image with axes showing the scale.
 
+# Known Issues
+
+## Error: fromstring has been removed, use frombytes() instead.
+
+This can happen if you have installed an old instance of `_dm3_lib.py`. It is however easily fixable. go to your installation of '_dm3_lib.py', mine was at:
+```
+/usr/local/lib/python3.5/dist-packages/dm3_lib/_dm3_lib.py
+```
+
+Edit the file and change all instances of `fromstring` (mine had 2) to `frombytes`. Restart your python kernel and the issue should be fixed. 
