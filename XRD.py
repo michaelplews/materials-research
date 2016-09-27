@@ -48,25 +48,33 @@ class BM11CSVfile(object):
 		return max_x, max_y
 
 			
-	def norm_dataframe(self, lower_lim, upper_lim):
-		two_theta, intensity = self.dataframe.index, self.dataframe[' intensity']
-		if lower_lim and upper_lim:
-			max_x, max_y = self.max_in_range(two_theta, intensity, lower_lim, upper_lim)
+	def norm_dataframe(self, between=[]):
+		intensity = self.dataframe[' intensity'].copy()
+		two_theta = intensity.index.values.copy()
+		intensity = intensity.as_matrix().copy()
+		if between == []:
+			max = np.amax(intensity)
 		else:
-			max_y = np.amax(intensity)
-		min_y = np.amin(intensity)
-		a = max_y-min_y
-		intensity[:] = [((x-min_y)/a) * 100 for x in intensity]
+			max_x, max = self.max_in_range(two_theta, intensity, between[0], between[1])
+		min = np.amin(intensity)
+		a = max-min
+		intensity[:] = [((x-min)/a) * 100 for x in intensity]
 		return two_theta, intensity
 
-	def plot(self, normalized=True, color="red", legend="", lower_lim="", upper_lim="", style=""):
+	def new_source(self, old_wavelength, new_wavelength, between):
+		two_theta, intensity = self.norm_dataframe(between)
+		two_theta[:] = [2*math.degrees(np.arcsin((new_wavelength*np.sin(math.radians(x/2)))/old_wavelength)) for x in two_theta]
+		return two_theta, intensity
+
+	def plot(self, normalized=True, color="red", legend="", new_source=False, old_wavelength="", new_wavelength="", between=[], style=""):
 		if style:
 			style.use=(style)
-		if normalized is True:
-			two_theta, intensity = self.norm_dataframe(lower_lim, upper_lim)
+		if new_source:
+			two_theta, intensity = self.new_source(old_wavelength, new_wavelength, between)		
+		elif normalized:
+			two_theta, intensity = self.norm_dataframe
 		else:
-			intensity = self.dataframe[' intensity']
-			two_theta = self.dataframe.index
+			two_theta, intensity = self.dataframe
 		if legend:
 			plt.plot(two_theta, intensity, linewidth = 1, label=legend, color=color)
 		elif self.shortname:
