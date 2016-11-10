@@ -204,13 +204,13 @@ myDM3image.plot()
 show()
 ```
 
-This .plot() function plots a TEM image with axes showing the scale.
+This .plot() function plots a TEM image with axes showing the scale in nanometers. Scale bars are also supported with the scale_bar keyword argument.
 
 # Known Issues
 
 ## Error: fromstring has been removed, use frombytes() instead.
 
-This can happen if you have installed an old instance of `_dm3_lib.py`. It is however easily fixable. go to your installation of '_dm3_lib.py', mine was at:
+This can happen if you have installed an old instance of `_dm3_lib.py`. It is, however, easily fixable. Go to your installation of '_dm3_lib.py', mine was at:
 ```
 /usr/local/lib/python3.5/dist-packages/dm3_lib/_dm3_lib.py
 ```
