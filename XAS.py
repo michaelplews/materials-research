@@ -15,15 +15,22 @@ class _DataFile():
                 energy = self.processed_dataframe['Energy / eV'].values
                 if legend:
                         plt.plot(energy, signal, linewidth = 1, label=legend, color=color)
+                        plt.legend(loc = 2, frameon = False).draggable(True)
                 elif self.shortname: 
-                        plt.plot(energy, signal, linewidth = 1, label=self.shortname, color=color)
+                        if legend is None:
+                                plt.plot(energy, signal, linewidth = 1, color=color)
+                        else:
+                                plt.plot(energy, signal, linewidth = 1, label=self.shortname, color=color)
+                                plt.legend(loc = 2, frameon = False).draggable(True)
                 else:
                         plt.plot(energy, signal, linewidth = 1, label='no_label', color=color)
+                        plt.legend(loc = 2, frameon = False).draggable(True)
                 plt.axis([np.amin(energy), np.amax(energy), 0, np.amax(signal)*1.1])
-                plt.legend(loc = 2, frameon = False).draggable(True)
-                        
+                # plt.subplots_adjust(hspace=0, wspace=0)
+
+                
         def _ScaleRef(self, column_id, name=None, divisor=None, trim=""):
-                """Internal function. Scaled data between 1 and 0 irrespective of wave shape"""
+                """Internal function. Scaled data between 1 and 0 irrespective of wave shape. Used for STD and TEY data analysis"""
                 if name is None:
                         name = column_id
                 if trim:                
@@ -44,9 +51,12 @@ class _DataFile():
                 #               normalized_dataframe = pd.Dataframe([scan.dataframe for scan in self._MDAlist])
                 return normalized_dataframe
 
-        def _ScaleAbs(self, column_id, name, divisor=None, head=5, tail=5, smooth=None):
-                """Internal function. Scales data absolutely between 1 and 0 depending on the wave shape"""
-                new_frame = self.normalized_dataframe[column_id].copy()
+        def _ScaleAbs(self, column_id, name, divisor=None, head=5, tail=5, smooth=None, trim=""):
+                """Internal function. Scales data absolutely between 1 and 0 depending on the wave shape. Used for TFY data analysis."""
+                if trim:
+                        new_frame = self.normalized_dataframe[column_id].iloc[trim[0]:trim[1]].copy()
+                else:
+                        new_frame = self.normalized_dataframe[column_id].copy()
                 if divisor:
                         new_frame = new_frame/self.normalized_dataframe[divisor].copy()
                 endloc = self.normalized_dataframe['Rounded Energy / eV'].iloc[-1]
@@ -170,7 +180,7 @@ class IDC4(_DataFile):
         REF_id = ''
         STD_id = '[1-D Detector  11]  4idc1:scaler1_calc6.VAL\t \t '
 
-        def __init__(self, directory, basename, start, end, exclude=None, shortname="", TFY_smooth=7):
+        def __init__(self, directory, basename, start, end, exclude=None, shortname="", TFY_smooth=7, trim_tey="", trim_tfy=""):
                 self._log = []  #reset the log to be empty
                 self.directory = directory
                 self.basename = basename
@@ -190,10 +200,10 @@ class IDC4(_DataFile):
                 self._AddLog('normalized_dataframe created')            
 
                 #More dataframes can be appended if needed
-                self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY')
-                self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'TFY', smooth=TFY_smooth)
+                self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', trim=trim_tfy)
+                self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'TFY', smooth=TFY_smooth, trim=trim_tfy)
                 self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
-                self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, name='TEY')   
+                self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, name='TEY', trim=trim_tey)   
                 self.normalized_dataframe['STD'] = self._ScaleRef(self.STD_id, name='STD')
 
                 #Tidy into a seperate processed dataframe
@@ -221,9 +231,6 @@ class IDC4(_DataFile):
                 """Prints formatted log output"""
                 for line in self._log:
                         print (line)
-
-        def plot(self, signal, color="red", legend=""):
-                _plot(self, signal, color, legend)
 
         def align(self, x_from, x_to):
                 """Applies the appropriate multiplication/division to shift waves in order to account for beam drift and other sources of expermental error. Should be used on a similar peak where x_from=original x location and x_to=desired x location."""          
@@ -302,7 +309,7 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
         REF_id = None
         STD_id = None
 
-        def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim=""):
+        def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim_tey="", trim_tfy=""):
                 self._log = []  #reset the log to be empty
                 self.directory = directory
                 self.basename = basename
@@ -320,18 +327,18 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
                 self._MDAlist = [_MDAdatafile(directory + basename + '.' + str(ext), flavour='ALS') 
                                                 for ext in range(self.start, self.end+1)
                                                 if ext not in self.exclude]
-                self.normalized_dataframe = _SumData(self)
+                self.normalized_dataframe = self._SumData()
                 self._AddLog('Object created (__init__)')
                 self._AddLog('normalized_dataframe created')            
 
                 #More dataframes can be appended if needed
-                self.normalized_dataframe['TFY'] = _ScaleAbs(self, self.TFY_id, 'TFY', divisor=self.I0_id)
-                self.normalized_dataframe['sTFY'] = _ScaleAbs(self, self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth)
+                self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id, trim=trim_tfy)
+                self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth, trim=trim_tfy)
                 self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
                 if tey_detector:
-                        self.normalized_dataframe['TEY'] = _ScaleRef(self, tey_detector, 'TEY', divisor=self.I0_id, trim=trim)
+                        self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=self.I0_id, trim=trim_tey)
                 else:
-                        self.normalized_dataframe['TEY'] = _ScaleRef(self, self.TEY_id, 'TEY', divisor=self.I0_id, trim=trim)
+                        self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=self.I0_id, trim=trim_tey)
                 self._AddLog('TFY, sTFY and TEY divided by I0')
 
                 #Tidy into a seperate processed dataframe
@@ -405,7 +412,7 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
         REF_id = None
         STD_id = None
 
-        def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim=""):
+        def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim_tey="", trim_tfy=""):
                 self._log = []  #reset the log to be empty
                 self.directory = directory
                 self.basename = basename
@@ -428,13 +435,13 @@ This renamed the files from "SigScan22222-Avg.txt" to "SigScan.22222". This make
                 self._AddLog('normalized_dataframe created')            
 
                 #More dataframes can be appended if needed
-                self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id)
-                self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth)
+                self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=self.I0_id, trim=trim_tfy)
+                self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=self.I0_id, smooth=TFY_smooth, trim=trim_tfy)
                 self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
                 if tey_detector:
-                        self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=self.I0_id, trim=trim)
+                        self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=self.I0_id, trim=trim_tey)
                 else:
-                        self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=self.I0_id, trim=trim)
+                        self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=self.I0_id, trim=trim_tey)
                 self._AddLog('TFY, sTFY and TEY divided by I0')
 
                 #Tidy into a seperate processed dataframe
