@@ -73,6 +73,20 @@ class _DataFile():
                 new_frame.columns = ['Rounded Energy / eV', name]
                 return new_frame
 
+        def yforx(self, x, xdata, ydata): #Used by other functions
+                """Sorts xdata into ascending order (required by splrep) and solves y (as fa) for a value of x. Also returns spl to allow for further calculations to take place quicker. Used by other functions."""
+                #Sorts data into ascending order (required by splrep)
+                data = xdata
+                indices = np.argsort(data)
+                data_index = data[indices]
+                percent_index = ydata[indices]
+                #interpolates data and solves y for a specific x
+                spl = interpolate.splrep(data_index, percent_index, s=0) 
+                #If errors, try s=1 smoothing to eradicate duplicates
+                fa = interpolate.splev(x,spl,der=0)     # f(a)
+                return fa, spl
+    
+        
         def _AddLog(self, message):
                 """Writes to object.log property to allow the user to observe and changes that have been made to the data since the object was initialised."""
                 self._log.append('{time}:\t{message}'.format(time=datetime.datetime.now(), message=message))
@@ -232,6 +246,28 @@ class IDC4(_DataFile):
                 for line in self._log:
                         print (line)
 
+        def fit_linear(self, signal, x1, x2):
+                """Fits a linear regression to two defined points. Returns the equation of the straight line (m, c). m = gradient, c = constant"""
+                energy = self.processed_dataframe['Energy / eV'].values
+                y1, y1spl = self.yforx(x1, energy, self.processed_dataframe[signal].values)
+                y2, y2spl = self.yforx(x2, energy, self.processed_dataframe[signal].values)
+                # Taken from http://stackoverflow.com/a/21566184
+                points = [(x1, y1),(x2, y2)]
+                x_coords, y_coords = zip(*points)
+                A = np.vstack([x_coords,np.ones(len(x_coords))]).T
+                m, c = np.linalg.lstsq(A, y_coords)[0]
+                return m, c
+
+        def plot_linear(self, m, c, color='blue'):
+                y = [m*x+c for x in self.processed_dataframe['Energy / eV'].values]
+                plt.plot(self.processed_dataframe['Energy / eV'].values, y, color=color)
+
+        def subtract_linear(self, signal, m, c):
+                #return True
+                y = [m*x+c for x in self.processed_dataframe['Energy / eV'].values]
+                self.processed_dataframe[signal] = self.processed_dataframe[signal].subtract(y)
+                self._AddLog(self.shortname + " " + signal +" background subtraction of " + "y = {m}x + {c}".format(m=m, c=c))
+        
         def align(self, x_from, x_to):
                 """Applies the appropriate multiplication/division to shift waves in order to account for beam drift and other sources of expermental error. Should be used on a similar peak where x_from=original x location and x_to=desired x location."""          
                 energy = self.processed_dataframe['Energy / eV']

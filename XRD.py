@@ -47,7 +47,8 @@ class _ReferenceFile():
         legend = ""
         xtal_system = ""
         flavour = ""
-
+        reference = ""
+        
         def plot(self, color="red", legend="", xtal=False, hkl=False, lim=80, style=""):
                 if style:
                         plt.style.use(style)
@@ -181,8 +182,7 @@ class XYFile(_DataFile):
                 dataframe = np.genfromtxt(self.filename, delimiter=None, names=['two_theta', 'intensity'],skip_header=0, autostrip=True)
                 return dataframe['two_theta'], dataframe['intensity']
                 
-        @property
-        def norm_dataframe(self):
+        def norm_dataframe(self, between):
                 two_theta, intensity = self.dataframe
                 max = np.amax(intensity)
                 min = np.amin(intensity)
@@ -209,7 +209,11 @@ class ICDDXmlFile(_ReferenceFile):
                 legend = filename[:-4].split(r'/')
                 self.legend = legend[-1]
                 self.flavour = flavour
-        
+                try:
+                        self.reference = root.find('.//references/reference_group/reference').text
+                except:
+                        pass
+                
         @property
         def peak_data(self):#Used by other functions
                 tree = ET.parse(self.filename)

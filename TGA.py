@@ -3,7 +3,7 @@ import numpy as np, matplotlib.pyplot as plt
 from scipy import interpolate
 
 class TGAFile(object):
-    """Loads data to an object from a .txt file created in Universal Analysis 2000 by TA Instruments"""
+    """Loads data to an object from a .txt file created in Universal Analysis 2000 by TA Instruments. Encoding options on export from UA software must be ANSI"""
     filename = ""
     original_filename = ""
     date = ""
@@ -21,6 +21,7 @@ class TGAFile(object):
         self.shortname = shortname
         file = open(filename, 'r', encoding='latin-1')
         i = 0
+        skip_line = 0
         self.signal = []
         for line in file:
             i += 1
@@ -44,6 +45,8 @@ class TGAFile(object):
             elif "Sig" in line:
                 signal_entry = line.split('\t')
                 self.signal.append(signal_entry[-1].strip('\n'))
+            elif "StartOfData" in line:
+                skip_line = i
         self.data_array = np.genfromtxt(filename, delimiter=None, skip_header=skip_line, autostrip=True, unpack=True)
     
     @property
@@ -97,8 +100,9 @@ class TGAFile(object):
         plt.ylabel(r'Weight Percent / %', fontsize=12)
         plt.xlabel(self.signal[x], fontsize=12)
         legend = plt.legend(loc=1, frameon = 1, fontsize=15, framealpha=1)
-        frame = legend.get_frame()
-        frame.set_color('white')
+        if legend:
+            frame = legend.get_frame()
+            frame.set_color('white')
         
     def plot_step(self, a, x=1, y=2, color="", line=True):
         """Plots point on curve of object"""
