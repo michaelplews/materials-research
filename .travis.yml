@@ -1,1 +1,8 @@
-language: python3
+language: python
+python:
+  - "3.5.2 "
+cache: pip
+install:
+  - pip install -r requirements.txt
+script:
+  - python unittest tests/tests.py
