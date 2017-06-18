@@ -191,8 +191,11 @@ class XYFile(_DataFile):
                 return two_theta, intensity
                 
 class ICDDXmlFile(_ReferenceFile):
-        """Class that imports ICDD xml file containing XRD reference data. 'flavour' ("thousand" or "hundred") optional argument gives the option to not divide all values by 10"""
+        """
+        Class that imports ICDD xml file containing XRD reference data. 'flavour' ("thousand" or "hundred") optional argument gives the option to not divide all values by 10
+        """
         pdf_number = ""
+        dataframe = ""
 
         def __init__(self, filename, flavour="thousand"):
                 self.filename = filename
@@ -213,8 +216,10 @@ class ICDDXmlFile(_ReferenceFile):
                         self.reference = root.find('.//references/reference_group/reference').text
                 except:
                         pass
+                # self.dataframe = 
                 
-        @property
+        
+        @property               # Now Legacy
         def peak_data(self):#Used by other functions
                 tree = ET.parse(self.filename)
                 root = tree.getroot()
@@ -264,29 +269,6 @@ class ICDDXmlFile(_ReferenceFile):
                         new_twotheta.append(2*math.degrees(np.arcsin(wavelength/(2*d))))
                 return new_twotheta
 
-        # def plot(self, color="red", legend="", xtal=False, hkl=False, lim=80, style=""):
-        #       if style:
-        #               plt.style.use(style)
-        #       x, y, hkl_values, h, k, l, d = self.peak_data
-        #       if legend:
-        #               plt.vlines(x,-10, y, label=legend,colors=color) 
-        #       elif self.legend:
-        #               plt.vlines(x,-10, y, label=self.legend,colors=color) 
-        #       elif self.shortname:
-        #               plt.vlines(x,-10, y, label=self.shortname,colors=color) 
-        #       else:
-        #               plt.vlines(x,-10, y, label='no_label',colors=color) 
-        #       if xtal and self.xtal_system:
-        #               plt.annotate(self.xtal_system, xy=(0.01, 0.95), xycoords='axes fraction', fontsize=10,
-        #                       horizontalalignment='left', verticalalignment='top')
-        #       plt.legend(loc = 1).draggable(True)                             # fontsize and other parameters removed as we now pickle our pgf styles
-        #       if hkl and hkl_values:
-        #               for index in range (0, len(hkl_values)):
-        #                       if float(x[index]) < lim:
-        #                               plt.annotate(hkl_values[index], xy=(x[index], y[index]), xycoords='data', fontsize=10, horizontalalignment='left', verticalalignment='bottom')
-        #       plt.xlim(float(10),float(lim))
-        #       plt.ylim(float(0),float(110))
-
         def plot_wavelength(self, wavelength, color="red", legend="", xtal=False, hkl=False, lim=80):
                 x, y, hkl_values, h, k, l, d = self.peak_data
 
@@ -314,13 +296,14 @@ class ICDDXmlFile(_ReferenceFile):
                 #plt.ylim(float(0),float(110))
 
         def export_csv(self, export_to):
-                if export_to[-3:] != "csv":
-                        export_to = export_to + '.csv'
-                x, y, = self.peak_data[0:2]
-                with open(export_to, 'w', newline='') as e:
-                        writer = csv.writer(e, delimiter=',')
-                        for i in range (0, len(x)):
-                                writer.writerow([x[i], y[i]])
+                # if export_to[-3:] != "csv":
+                #         export_to = export_to + '.csv'
+                x, y = self.peak_data[0:2]
+                _export_csv(x, y, export_to)
+                # with open(export_to, 'w', newline='') as e:
+                #         writer = csv.writer(e, delimiter=',')
+                #         for i in range (0, len(x)):
+                #                 writer.writerow([x[i], y[i]])
 
 class MaterProjJSON(_ReferenceFile):
         """Class that imports downloaded XRD JSON files from materialsproject.org for comparison against other XRD patterns"""
@@ -345,7 +328,28 @@ class MaterProjJSON(_ReferenceFile):
                 json_file.close()
                 self.legend = self.mp_number    
 
+        def export_csv(self, export_to):
+                _export_to(self.two_theta, self.amplitude, export_to)
+                
+# Internal functions
+def _export_csv(x, y, export_to):
+        """Exports x and y data to a comma-separated ascii file.
 
+        Arguments
+        ---------
+        x : list
+            list of x values to be written to the first column in the .csv file
+        y : list
+            list of y values to be written to the second column in the .csv file
+        export_to : str
+            destination path to file
+        """
+
+        with open(export_to, 'w', newline='') as e:
+                writer = csv.writer(e, delimiter=',')
+                for i in range (0, len(x)):
+                        writer.writerow([x[i], y[i]])
+        
 # Legacy functions
 def retro_plot_xrd(filename, color="red", legend="", number_of_stacked=0):
         #normalize_xrd(filename)
@@ -372,3 +376,4 @@ def plot_xrd(object, color="red", legend="", number_of_stacked=0):
         plt.axis([10, 80, -10, 110 + number_of_stacked*10])
         plt.legend(loc = 1).draggable(True)                             # fontsize and other parameters removed as we now pickle our pgf styles
         plt.subplots_adjust(hspace=0)
+

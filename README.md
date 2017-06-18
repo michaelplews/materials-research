@@ -81,6 +81,14 @@ show()
 ```
 ![After Alignment](./examples/images/AfterAlign.jpg "After Alignment")
 
+## Supported Importers
+
+| Object        | Beamline      | Facility  |
+| ------------- |:-------------:| :-----|
+| `IDC4`        | 4-ID-C        | APS, Argonne National Laboratory |
+| `ALS6312`     | 6.3.1         | ALS, Lawrence Berkeley National Laboratory |
+| `ALS801`      | 8.0.1         | ALS, Lawrence Berkeley National Laboratory |
+
 # Thermogravimetric Analysis (TGA.py)
 
 ## Use
