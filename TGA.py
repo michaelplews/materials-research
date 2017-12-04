@@ -1,7 +1,15 @@
 #TGA Technique 
 import numpy as np, matplotlib.pyplot as plt
 from scipy import interpolate
+import pandas as pd
 
+class _DataFile(object):
+    def plot(self, x='Temperature (oC)', y='Mass (mg)', color='blue'):
+        """Plots x vs y based on self.signal columns. Further calculation based plotting can be done using other commands."""
+        plt.plot(self.dataframe[x].values, self.dataframe[y].values, color=color)
+        plt.xlabel(self.dataframe[x].name, fontsize=12)
+        plt.ylabel(self.dataframe[y].name, fontsize=12)
+    
 class TGAFile(object):
     """Loads data to an object from a .txt file created in Universal Analysis 2000 by TA Instruments. Encoding options on export from UA software must be ANSI"""
     filename = ""
@@ -128,3 +136,27 @@ class TGAFile(object):
         plt.annotate(gas2, xy=(location+2, -0), xycoords='data', fontsize=fontsize,
             horizontalalignment='left', verticalalignment='top')
     
+
+class KPFile(_DataFile):
+    """Loads datafiles from TGA data obtained at Poppelmeier facilities, Northwestern University"""
+    filename = ""
+    original_filename = ""
+    date = ""
+    time = ""
+    sample = ""
+    mass = ""
+    method = ""
+    comment = ""
+    signal = []
+    data_array = ""
+    color = "blue"
+
+    def __init__(self, filename, shortname=""):
+        self.filename = filename
+        self.shortname = shortname
+        file = open(filename, 'r', encoding='latin-1')
+        i = 0
+        skip_line = 0
+        self.signal = []
+        # self.data_array = pd(filename, delimiter='\s', skip_header=1, autostrip=True, unpack=True)
+        self.dataframe = pd.read_csv(filename, encoding='utf-16', sep='\t', skiprows=0, header=0, index_col=0)

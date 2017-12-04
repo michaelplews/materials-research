@@ -4,6 +4,7 @@ import unittest, sys, os, numpy as np, pandas as pd
 
 wdir = os.path.dirname(__file__) # Find the current working directory
 sys.path.append("..")
+sys.path.append(".")
 import XRD as xrd
 
 class XRD_functions_test(unittest.TestCase):

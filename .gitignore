@@ -4,3 +4,7 @@ _dm3_lib.py
 *.style
 *.txt.*
 release-notes/
+issues.org
+#*
+#issues.org#
+.#issues.org

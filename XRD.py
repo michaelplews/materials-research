@@ -13,11 +13,25 @@ class _DataFile():
         """Parent class for all XRD data files"""
         filename = ""
         shortname = ""
+        
+        def _new_source(self, old_wavelength, new_wavelength, between):
+                two_theta, intensity = self.norm_dataframe(between)
+                two_theta[:] = [2*math.degrees(np.arcsin((new_wavelength*np.sin(math.radians(x/2)))/old_wavelength)) for x in two_theta]
+                return two_theta, intensity
+
+        def _normalize(self):
+                """
+                Internal function. Normalize the data between 0 and 100.
+                """
+                self.dataframe['norm_intensity'] = self.dataframe['intensity']
+                self.dataframe['norm_intensity'] -= self.dataframe['norm_intensity'].min()
+                self.dataframe['norm_intensity'] /= self.dataframe['norm_intensity'].max() * 0.01
+
         def plot(self, normalized=True, color="red", legend="", new_source=False, old_wavelength="", new_wavelength="", between=[], style=""):
                 if style:
                         style.use=(style)
                 if new_source:
-                        two_theta, intensity = _new_source(self, old_wavelength, new_wavelength, between)               
+                        two_theta, intensity = self._new_source(old_wavelength, new_wavelength, between)               
                 elif normalized:
                         two_theta, intensity = self.norm_dataframe(between)
                 else:
@@ -28,18 +42,14 @@ class _DataFile():
                         plt.plot(two_theta, intensity, linewidth = 1, label=self.shortname, color=color)
                         plt.legend(loc = 1).draggable(True)                             # fontsize and other parameters removed as we now pickle our pgf styles
                         plt.subplots_adjust(hspace=0, wspace=0)
-
+                elif legend is None:
+                        plt.plot(two_theta, intensity, linewidth = 1, label=None, color=color)                        
                 else:
                         plt.plot(two_theta, intensity, linewidth = 1, label='no_label', color=color)
                         plt.legend(loc = 1).draggable(True)                             # fontsize and other parameters removed as we now pickle our pgf styles
-                        plt.subplots_adjust(hspace=0, wspace=0)
-
-
-        def _new_source(self, old_wavelength, new_wavelength, between):
-                two_theta, intensity = self.norm_dataframe(between)
-                two_theta[:] = [2*math.degrees(np.arcsin((new_wavelength*np.sin(math.radians(x/2)))/old_wavelength)) for x in two_theta]
-                return two_theta, intensity
-
+                plt.subplots_adjust(hspace=0, wspace=0)
+                        
+        
 class _ReferenceFile():
         """Parent Class for all XRD Reference Pattern Files"""
         filename = ""
@@ -72,13 +82,6 @@ class _ReferenceFile():
                 plt.xlim(float(10),float(lim))
                 plt.ylim(float(0),float(110))
 
-# class Sector8File(DataFile):
-#     def plot(self, color="green", *args, **kwargs):
-#         print("Do some other plotting bullshit")
-#         super().plot(color=color, *args, **kwargs)
-
-# f = Sector8File()
-# f.plot()
 
 # Object classes to open and process data files from different sources and formats
 class BM11CSVfile(_DataFile):
@@ -173,17 +176,37 @@ class BrukerBrmlFile(_DataFile):
 class XYFile(_DataFile):
         '''Class that imports data from ASCII .xy file to an object'''
         
-        def __init__(self, filename, shortname=""):
+        def __init__(self, filename, shortname="", **kwargs):
                 self.filename = filename
                 self.shortname = shortname
+                self.dataframe = pd.read_csv(self.filename, header=0, index_col=0, names=['two_theta', 'intensity'], **kwargs)
+                self._normalize()
+
+        # @property
+        # def dataframe(self): #Used by other functions
+        #         dataframe = np.genfromtxt(self.filename, delimiter=None, names=['two_theta', 'intensity'],skip_header=0, autostrip=True)
+        #         return dataframe['two_theta'], dataframe['intensity']
                 
-        @property
-        def dataframe(self): #Used by other functions
-                dataframe = np.genfromtxt(self.filename, delimiter=None, names=['two_theta', 'intensity'],skip_header=0, autostrip=True)
-                return dataframe['two_theta'], dataframe['intensity']
-                
-        def norm_dataframe(self, between):
-                two_theta, intensity = self.dataframe
+        def plot(self, signal='norm_intensity', color='r', legend=''):
+                signal = self.dataframe[signal].values
+                two_theta = self.dataframe.index.values
+                if legend:
+                        plt.plot(two_theta, signal, linewidth = 1, label=legend, color=color)
+                        plt.legend(loc = 2, frameon = False).draggable(True)
+                elif self.shortname: 
+                        if legend is None:
+                                plt.plot(two_theta, signal, linewidth = 1, color=color)
+                        else:
+                                plt.plot(two_theta, signal, linewidth = 1, label=self.shortname, color=color)
+                                plt.legend(loc = 2, frameon = False).draggable(True)
+                else:
+                        plt.plot(two_theta, signal, linewidth = 1, label='no_label', color=color)
+                        plt.legend(loc = 2, frameon = False).draggable(True)
+                        plt.axis([np.amin(two_theta), np.amax(two_theta), 0, np.amax(signal)*1.1])
+                        
+        def norm_dataframe(self):
+                two_theta = self.dataframe.index.values
+                intensity = self.dataframe['intensity'].values
                 max = np.amax(intensity)
                 min = np.amin(intensity)
                 a = max-min
@@ -300,11 +323,7 @@ class ICDDXmlFile(_ReferenceFile):
                 #         export_to = export_to + '.csv'
                 x, y = self.peak_data[0:2]
                 _export_csv(x, y, export_to)
-                # with open(export_to, 'w', newline='') as e:
-                #         writer = csv.writer(e, delimiter=',')
-                #         for i in range (0, len(x)):
-                #                 writer.writerow([x[i], y[i]])
-
+                
 class MaterProjJSON(_ReferenceFile):
         """Class that imports downloaded XRD JSON files from materialsproject.org for comparison against other XRD patterns"""
         mp_number = ""

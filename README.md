@@ -1,3 +1,5 @@
+<a href=https://travis-ci.org/michaelplews/materials-research><img src="https://travis-ci.org/michaelplews/materials-research.svg?branch=master"></a>
+
 # Contents
 1. [Requirements](#requirements)
 2. [X-Ray Absorption Spectroscopy (XAS.py)](#x-ray-absorption-spectroscopy-xaspy)

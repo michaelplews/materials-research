@@ -11,8 +11,14 @@ class _DataFile():
     shortname = ""
     
     def plot(self, signal, color="red", legend=''):
-        signal = self.processed_dataframe[signal].values
-        energy = self.processed_dataframe['Energy / eV'].values
+        if self.processed_dataframe is not None:
+            signal = self.processed_dataframe[signal].values
+            energy = self.processed_dataframe['Energy / eV'].values
+        elif self.dataframe is not None:
+            signal = self.dataframe[signal].values
+            energy = self.dataframe.index.values
+        else:
+            RaiseException('No dataframe found')
         if legend:
             plt.plot(energy, signal, linewidth = 1, label=legend, color=color)
             plt.legend(loc = 2, frameon = False).draggable(True)
@@ -25,11 +31,10 @@ class _DataFile():
         else:
             plt.plot(energy, signal, linewidth = 1, label='no_label', color=color)
             plt.legend(loc = 2, frameon = False).draggable(True)
-        plt.axis([np.amin(energy), np.amax(energy), 0, np.amax(signal)*1.1])
+        # plt.axis([np.amin(energy), np.amax(energy), 0, np.amax(signal)*1.1])
         # plt.subplots_adjust(hspace=0, wspace=0)
 
-        
-    def _ScaleRef(self, column_id, name=None, divisor=None, trim=""):
+    def _ScaleRef(self, column_id, name=None, divisor=None, trim="", smooth=None):
         """
         Internal function. Scaled data between 1 and 0 irrespective of wave shape. Used for STD and TEY data analysis
         """
@@ -41,6 +46,9 @@ class _DataFile():
             new_frame = self.normalized_dataframe[column_id].copy()
         if divisor:
             new_frame = new_frame/self.normalized_dataframe[divisor].copy()
+        if smooth:
+            new_frame = pd.Series.rolling(new_frame, window=smooth,center=True,min_periods=smooth).mean()       # Updated due to future warning
+            #new_frame = pd.rolling_mean(new_frame, smooth, smooth, center=True)                  # Legacy
         new_frame -= new_frame.min()
         new_frame /= new_frame.max()
         new_frame.columns = ['Rounded Energy / eV', name]
@@ -154,6 +162,12 @@ class _DataFile():
         y = [m*x+c for x in self.processed_dataframe['Energy / eV'].values]
         plt.plot(self.processed_dataframe['Energy / eV'].values, y, color=color)
 
+
+    def renormalize(self, signal, TFY_smooth=7, trim_tey="", trim_tfy=""):
+        """Provides renormalization in case data needs to be reworked"""
+        self.processed_dataframe[signal] -= self.processed_dataframe[signal].min()
+        self.processed_dataframe[signal] /= self.processed_dataframe[signal].max()
+                   
     def subtract_linear(self, signal, m, c):
         """Subtracts a linear equation of y=mx+c from a specified signal"""
         y = [m*x+c for x in self.processed_dataframe['Energy / eV'].values]
@@ -215,12 +229,10 @@ class _MDAdatafile():
                 self.dataframe['Rounded Energy / eV'] = pd.Series(np.around(self.dataframe['Mono Energy'], decimals=1), index=self.dataframe.index)
             self.dataframe.index = self.dataframe['Rounded Energy / eV']
         elif flavour == "SSRL":
-            self.dataframe = pd.read_csv(filename, sep=',', skiprows=0, header=0, index_col=0)
+            self.dataframe = pd.read_csv(filename, sep=' ', skiprows=0, header=0, index_col=0)
             self.dataframe.columns = [s.strip(' ') for s in self.dataframe.columns.tolist()]
-            # try:
-            self.dataframe['Rounded Energy / eV'] = pd.Series(np.around(self.dataframe['mono'], decimals=1), index=self.dataframe.index)
-            # except:
-            #     self.dataframe['Rounded Energy / eV'] = pd.Series(np.around(self.dataframe['Mono Energy'], decimals=1), index=self.dataframe.index)
+            self.dataframe['Rounded Energy / eV'] = pd.Series(np.around(self.dataframe.index, decimals=1), index=self.dataframe.index)
+            self.dataframe['mono'] = self.dataframe.index.copy()
             self.dataframe.index = self.dataframe['Rounded Energy / eV']
              
     @property
@@ -229,7 +241,7 @@ class _MDAdatafile():
         for line in range (0, len(self.column_index)):
             print (str(line) + '\t|\t' + self.column_index[line])
 
-            
+
 # Object classes to open and process datafiles from different sources and formats
 class igorTXTFile(_DataFile):
     """Loads .txt wave files exported by IGOR Pro"""
@@ -482,8 +494,17 @@ class SSRL82(_DataFile):
     """
     Imports data files from beamline 8.2 at SSRL, Stanford Linear Accelerator Center. 
     Resulting object contains a raw dataframe, and a processed dataframe.  
+    Files should be renamed to form Name.001 where Name is a common name shared by similar files. Make copies of files before renaming, as angle and position data is stored int he filename. 
     Notes:
+     - Files should be taken from spec_export/ (these have been pre-processed)
      - These signals are already divided by i0, so divisor is set to None
+    
+    Files should be renamed using bash:
+
+    $ for i in *.dat ; do mv $i $(echo $i | sed -e 's/.*_//') ; done
+    $ for i in *.dat ; do mv "$i" "Scan.$i" ; done
+    $ for i in *.dat ; do mv "$i" "${i%".dat"}" ; done
+    
     """
     directory = ""
     basename = ""
@@ -494,17 +515,30 @@ class SSRL82(_DataFile):
     processed_dataframe = ""
     beamline = "8.2, Stanford Linear Accelerator Center"
     _log = []
+    default_trim = {
+        'tey': [],
+        'tfy': [],
+        'aey': [],
+        'pey': [],
+    }
 
     #Variables that will change if instrument set up is adjusted
     Energy_id = 'mono'
-    TFY_id = 'fy'
+    TFY_id = 'tfy'
     TEY_id = 'tey'
-    AEY_id = 'cmact'
+    AEY_id = 'aey'
+    PEY_id = 'pey'
     I0_id = 'i0'
-    REF_id = 'ref'
+    REF_id = 'refy'
     STD_id = None
     
-    def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim_tey="", trim_tfy="", trim_aey=""):
+    def __init__(self, directory, basename, start, end=0, exclude=None, shortname="", tey_detector="", TFY_smooth=7, trim={}):
+        self.default_trim = { # reset the trim dict
+            'tey': [],
+            'tfy': [],
+            'aey': [],
+            'pey': [],
+        }
         self._log = []  #reset the log to be empty
         self.directory = directory
         self.basename = basename
@@ -526,17 +560,21 @@ class SSRL82(_DataFile):
         self._AddLog('Object created (__init__)')
         self._AddLog('normalized_dataframe created')      
 
-        #More dataframes can be appended if needed
+        # Apply any update the trim dict with new data 
+        self.default_trim.update(trim)
+        
+        # More dataframes can be appended if needed
         self.normalized_dataframe['REF'] = self._ScaleRef(self.REF_id, 'REF', divisor=None)
-        self.normalized_dataframe['TFY'] = self._ScaleAbs(self.TFY_id, 'TFY', divisor=None, trim=trim_tfy)
-        self.normalized_dataframe['sTFY'] = self._ScaleAbs(self.TFY_id, 'sTFY', divisor=None, smooth=TFY_smooth, trim=trim_tfy)
+        self.normalized_dataframe['TFY'] = self._ScaleRef(self.TFY_id, 'TFY', divisor=None, trim=self.default_trim['tfy'])
+        self.normalized_dataframe['sTFY'] = self._ScaleRef(self.TFY_id, 'sTFY', divisor=None, smooth=TFY_smooth, trim=self.default_trim['tfy'])
         self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
         if tey_detector:
-            self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=None, trim=trim_tey)
+            self.normalized_dataframe['TEY'] = self._ScaleRef(tey_detector, 'TEY', divisor=None, trim=self.default_trim['tey'])
         else:
-            self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=None, trim=trim_tey)
-        self.normalized_dataframe['AEY'] = self._ScaleRef(self.AEY_id, 'AEY', divisor=None, trim=trim_aey)
-        self._AddLog('REF, TFY, sTFY, TEY and AEY divided by I0')
+            self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, 'TEY', divisor=None, trim=self.default_trim['tey'])
+        self.normalized_dataframe['AEY'] = self._ScaleRef(self.AEY_id, 'AEY', divisor=None, trim=self.default_trim['aey'])
+        self.normalized_dataframe['PEY'] = self._ScaleRef(self.PEY_id, 'PEY', divisor=None, trim=self.default_trim['pey'])
+        self._AddLog('REF, TFY, sTFY, TEY ,PEY and AEY divided by I0')
 
         #Tidy into a seperate processed dataframe
         self.processed_dataframe = self.normalized_dataframe.ix[:,[
@@ -545,7 +583,8 @@ class SSRL82(_DataFile):
             'TFY',
             'sTFY',
             'TEY',
-            'AEY'
+            'AEY',
+            'PEY'
         ]].copy()
         self.processed_dataframe.rename(columns={self.Energy_id:'Energy / eV'}, inplace=True)
         self._AddLog('processed_dataframe created')
@@ -559,6 +598,44 @@ class SSRL82(_DataFile):
             except IndexError:
                 print (self._MDAlist[index].basename + '.' + self._MDAlist[index].ext+'\t|\t'+str(self._MDAlist[index].scan_datetime)+'\t|\t'+'Empty File')
         
+class athena(_DataFile):
+    """
+    Files exported from Athena (part of the Horae package). Resulting object contains a dataframe that is unprocessed (as that was presumably already done in Athena). One file should be imported per object.
+    """
+    _log = []
+    header_lines = 0
+    column_list = []
+    processed_dataframe = None
+    
+    #Variables that will change if instrument set up is adjusted
+    Energy_id = 'energy'
+    norm_id = 'norm'
+    bkg_norm_id = 'bkg_norm'
+    der_norm_id = 'der_norm'
+    stddev_id = 'stddev'
+
+    def __init__(self, filename, shortname="", signal_type='nor'):
+        self._log = []  #reset the log to be empty
+        self.filename = filename
+        self.shortname = shortname
+        f = open(filename)
+
+        # Empty column_list
+        column_list = []
+        i=0
+        for line in f:
+            if '#---------' in line:
+                self.header_lines = i+2
+                self.column_list = [s for s in next(f).strip('#').strip('\n').split(' ') if s is not '']
+            else:
+                i+=1
+        self.dataframe = pd.read_csv(filename, sep='\s+', skiprows=self.header_lines, names=self.column_list, index_col=0)
+        self.dataframe['Rounded Energy / eV'] = pd.Series(np.around(self.dataframe.index, decimals=1), index=self.dataframe.index)
+        self.dataframe['energy'] = self.dataframe.index.copy()
+        self.dataframe.index = self.dataframe['Rounded Energy / eV']
+
+        self._AddLog('dataframe created')
+
 # Extra Functions for Compatibility
 def load_file_to_dataframe(filename, beamline):
     """Extracts data to a dataframe"""
