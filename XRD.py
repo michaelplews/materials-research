@@ -176,10 +176,10 @@ class BrukerBrmlFile(_DataFile):
 class XYFile(_DataFile):
         '''Class that imports data from ASCII .xy file to an object'''
         
-        def __init__(self, filename, shortname="", **kwargs):
+        def __init__(self, filename, shortname="", sep='\s+', **kwargs):
                 self.filename = filename
                 self.shortname = shortname
-                self.dataframe = pd.read_csv(self.filename, header=0, index_col=0, names=['two_theta', 'intensity'], **kwargs)
+                self.dataframe = pd.read_csv(self.filename, header=0, index_col=0, names=['two_theta', 'intensity'], sep=sep, **kwargs)
                 self._normalize()
 
         # @property
@@ -203,6 +203,7 @@ class XYFile(_DataFile):
                         plt.plot(two_theta, signal, linewidth = 1, label='no_label', color=color)
                         plt.legend(loc = 2, frameon = False).draggable(True)
                         plt.axis([np.amin(two_theta), np.amax(two_theta), 0, np.amax(signal)*1.1])
+                plt.subplots_adjust(hspace=0, wspace=0)
                         
         def norm_dataframe(self):
                 two_theta = self.dataframe.index.values

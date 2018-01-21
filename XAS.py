@@ -9,6 +9,7 @@ class _DataFile():
     """Parent class for all XAS data files"""
     filename = ""
     shortname = ""
+    dataframe = ""
     
     def plot(self, signal, color="red", legend=''):
         if self.processed_dataframe is not None:
@@ -73,6 +74,9 @@ class _DataFile():
             new_frame = self.normalized_dataframe[column_id].copy()
         if divisor:
             new_frame = new_frame/self.normalized_dataframe[divisor].copy()
+        # if smooth is None:
+        #     endloc = self.normalized_dataframe['energy'].iloc[-1]
+        # else:
         endloc = self.normalized_dataframe['Rounded Energy / eV'].iloc[-1]
         v_minloc = new_frame.idxmin()
         if v_minloc < endloc/2+v_minloc/2:
@@ -102,23 +106,42 @@ class _DataFile():
         fa = interpolate.splev(x,spl,der=0)   # f(a)
         return fa, spl
   
-    def align(self, x_from, x_to):
+    def align(self, x_from, x_to, dataframe='processed_dataframe', use_index=False):
         """
         Applies the appropriate multiplication/division to shift waves in order to account for beam drift and other sources of expermental error. Should be used on a similar peak where x_from=original x location and x_to=desired x location.
-        """      
-        energy = self.processed_dataframe['Energy / eV']
+        """
+        dict = {
+            'dataframe': self.dataframe,
+            'processed_dataframe': self.processed_dataframe
+        }
+        
+        if use_index:
+            dict[dataframe].reset_index()
+        energy = dict[dataframe]['Energy / eV']
         if x_to > x_from:
             energy *= x_to/x_from
         else:
             energy /= x_from/x_to
+
+        # if use_index:
+        #     dict[dataframe].set_index('Energy / eV')
+
         self._AddLog(self.shortname + " aligned from " + str(x_from) + "eV to " + str(x_to) + "eV")
 
-    def max_in_range(self, signal, low, high, plot=True, do_return=False):
+    def max_in_range(self, signal, low, high, plot=True, do_return=False, dataframe='processed_dataframe', use_index=False):
         """
         Finds the maximum value of y in a given range of x
         """
-        get_signal = self.processed_dataframe[signal].values
-        energy = self.processed_dataframe['Energy / eV'].values
+        dict = {
+            'dataframe':self.dataframe,
+            'processed_dataframe':self.processed_dataframe
+        }
+        
+        get_signal = dict[dataframe][signal].values
+        if use_index:
+            energy = dict[dataframe].index.values
+        else:
+            energy = dict[dataframe]['Energy / eV'].values
         data = np.vstack((energy, get_signal))
         y_values = data[1][np.logical_and(low < data[0], data[0] < high)]
         x_values = data[0][np.logical_and(low < data[0], data[0] < high)]
@@ -135,6 +158,7 @@ class _DataFile():
         Writes to object.log property to allow the user to observe and changes that have been made to the data since the object was initialised.
         """
         self._log.append('{time}:\t{message}'.format(time=datetime.datetime.now(), message=message))
+
 
     @property
     def log(self):
@@ -264,6 +288,7 @@ class IDC4(_DataFile):
     exclude = []
     normalized_dataframe = ""
     processed_dataframe = ""
+    dataframe = ""
     beamline = "4-ID-C, Advanced Photon Source"
     _log = []
 
@@ -299,14 +324,19 @@ class IDC4(_DataFile):
         self._AddLog('TFY smoothed: rolling mean window = ' + str(TFY_smooth))
         self.normalized_dataframe['TEY'] = self._ScaleRef(self.TEY_id, name='TEY', trim=trim_tey)   
         self.normalized_dataframe['STD'] = self._ScaleRef(self.STD_id, name='STD')
+        self.normalized_dataframe['TFY2'] = self._ScaleRef(self.TFY_id, 'TFY', trim=trim_tfy)
+        self.normalized_dataframe['sTFY2'] = self._ScaleRef(self.TFY_id, 'TFY', smooth=TFY_smooth, trim=trim_tfy)
 
+        
         #Tidy into a seperate processed dataframe
         self.processed_dataframe = self.normalized_dataframe.ix[:,[
             self.Energy_id,
             'TFY',
             'sTFY',
             'TEY',
-            'STD'
+            'STD',
+            'TFY2',
+            'sTFY2',
         ]].copy()
         self.processed_dataframe.rename(columns={self.Energy_id:'Energy / eV'}, inplace=True)
         self._AddLog('processed_dataframe created')
@@ -636,6 +666,53 @@ class athena(_DataFile):
 
         self._AddLog('dataframe created')
 
+class datathief(_DataFile):
+    """
+    Loads .txt files exported by Datathief.jar
+    """
+    directory = ""
+    basename = ""
+    start = ""
+    end = ""
+    exclude = []
+    normalized_dataframe = ""
+    dataframe = ""
+    processed_dataframe = None
+    _log = []
+
+    #Variables that will change if instrument set up is adjusted
+    energy_id = 'energy'
+    signal_id = 'signal'
+
+    def __init__(self, filename, shortname="", trim="", method='ScaleRef'):
+        self._log = []  #reset the log to be empty
+        self.shortname = shortname
+        self._MDAlist = []
+
+        # Read the file to create the dataframe
+        self.normalized_dataframe = pd.read_csv(filename, names=['energy', 'signal'], skiprows=1)
+
+        self._AddLog('Object created (__init__)')
+        self._AddLog('normalized_dataframe created')      
+
+        dict={
+            'ScaleRef':self._ScaleRef,
+            'ScaleAbs':self._ScaleAbs,
+        }
+        
+        #More dataframes can be appended if needed
+        self.normalized_dataframe['signal'] = dict[method](self.signal_id, 'signal', trim=trim)
+        
+        #Tidy into a seperate processed dataframe
+        #Tidy into a seperate processed dataframe
+        self.processed_dataframe = self.normalized_dataframe.ix[:,[
+            self.energy_id,
+            'signal'
+        ]].copy()
+        self.processed_dataframe.rename(columns={self.energy_id:'Energy / eV'}, inplace=True)
+        self._AddLog('processed_dataframe created')
+
+        
 # Extra Functions for Compatibility
 def load_file_to_dataframe(filename, beamline):
     """Extracts data to a dataframe"""
