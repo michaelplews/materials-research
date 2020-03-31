@@ -1,11 +1,15 @@
 """Unit tests for IR.py"""
 
-import unittest, sys, os, numpy as np, pandas as pd
+import unittest
+import sys
+import os
+import numpy as np
+import pandas as pd
 
 wdir = os.path.dirname(__file__) # Find the current working directory
 sys.path.append("..")
 sys.path.append(".")
-import IR as ir
+import cabanapy.IR as ir
 
 class IR_init_test(unittest.TestCase):
     """

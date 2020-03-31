@@ -5,7 +5,7 @@ import unittest, sys, os, numpy as np, pandas as pd
 wdir = os.path.dirname(__file__) # Find the current working directory
 sys.path.append("..")
 sys.path.append(".")
-import XAS as xas
+import cabanapy.XAS as xas
 
 class XAS_init_tests(unittest.TestCase):
 

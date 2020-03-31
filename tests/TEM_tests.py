@@ -5,7 +5,7 @@ import unittest, sys, os, numpy as np, pandas as pd
 wdir = os.path.dirname(__file__) # Find the current working directory
 sys.path.append("..")
 sys.path.append(".")
-import TEM as tem
+import cabanapy.TEM as tem
 
 class TEM_init_tests(unittest.TestCase):
     """Unit test to assert filetypes are loaded correctly"""

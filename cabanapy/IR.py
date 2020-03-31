@@ -1,8 +1,10 @@
 #-*- coding: utf-8 -*-
 
-import numpy as np, pandas as pd, matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import xml
-from techniques.bruker_opus_filereader import OpusReader
+from bruker_opus_filereader import OpusReader
 
 
 # Parent Class

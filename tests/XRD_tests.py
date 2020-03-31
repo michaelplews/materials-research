@@ -5,7 +5,7 @@ import unittest, sys, os, numpy as np, pandas as pd
 wdir = os.path.dirname(__file__) # Find the current working directory
 sys.path.append("..")
 sys.path.append(".")
-import XRD as xrd
+import cabanapy.XRD as xrd
 
 class XRD_functions_test(unittest.TestCase):
     """Tests for the generic functions in XRD.py. These functions are either used by other functions or used directly"""
