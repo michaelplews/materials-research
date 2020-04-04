@@ -8,11 +8,39 @@
 5. [Electrochemistry (EChem.py)](#electrochemistry-echempy)
 6. [Transmission Electron Microscopy (TEM.py)](#transmission-electron-microscopy-tempy)
 
-# Requirements
+# Author
+
+The original author of this package can be found at https://github.com/michaelplews/materials-research. I have
+downloaded, updated, rearranged, and simplified the installation and usage of this package. Will Eventually make it 
+pip installable.
+
+# Installation Requirements
 
 Requirements can be installed with:
 ```bash
-pip install -r requirements.txt
+
+conda create -n cabanalab python=3.6
+source activate cabanalab
+git clone git@github.com:WilliamJudge94/materials_research.git
+pip3 install -r materials_research/requirements.txt
+pip3 install ipykernel
+ipython kernel install --user --name=cabanalab
+
+```
+
+# Jupyter Commands
+
+Requirements to be used in Jupyter Lab/Notebook - use cabanalab kernel
+```python
+
+import sys
+
+# Showing which directory you installed this to
+sys.path.append('/path/to/materials_research')
+
+# Example importing of XAS module
+from materials_research.cabanalab import XAS as xas
+
 ```
 
 # X-Ray Absorption Spectroscopy (XAS.py)
@@ -22,7 +50,7 @@ pip install -r requirements.txt
 - The `IDC4` object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
 - Syntax for use is as follows:
 ```python
-from . import XAS as xas
+from materials_research.cabanalab import XAS as xas
 
 dire = "./data/4-ID-C/my_data/" #The directory that contains your data
 base = "MyData" 				#The base name for all your files (e.g. MyData.0001)
@@ -100,7 +128,7 @@ show()
 ## Example
 
 ```python
-from . import TGA as tga
+from materials_research.cabanalab import TGA as tga
 
 my_sample = tga.TGAFile("../path/to/file.txt", shortname=r'My Sample')
 
@@ -130,7 +158,7 @@ show()
 ## Example
 
 ```python
-from . import XRD as xrd
+from materials_research.cabanalab import XRD as xrd
 
 my_sample = xrd.BrukerBrmlFile("./path/to/file.brml", shortname=r'LiF as purchased')
 ref_LiF = xrd.ICDDXmlFile("./path/to/file.xml") #defaults to the file name for the legend
@@ -160,7 +188,7 @@ show()
 ## Example
 
 ```python
-from . import EChem as echem
+from materials_research.cabanalab import EChem as echem
 
 my_battery = echem.MPTFile("./path/to/mptfile", shortname = "My Battery")
 my_battery.show_columns #Shows all columns with index numbers in the file
@@ -206,7 +234,7 @@ This script is a wrapper for [_dm3_lib.py](https://bitbucket.org/piraynal/pydm3r
 
 ## Other functions
 ```python
-from . import TEM as tem
+from materials_research.cabanalab import TEM as tem
 
 myDM3image = tem.DM3File("./path/to/dm3file", shortname = "My Image")
 myDM3image.plot()
