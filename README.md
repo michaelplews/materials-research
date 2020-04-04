@@ -31,10 +31,10 @@ Requirements to be used in Jupyter Lab/Notebook - use cabanalab kernel
 import sys
 
 # Showing which directory you installed this to
-sys.path.append('/path/to/materials-research')
+sys.path.append('/path/to/materials-research/')
 
 # Example importing of XAS module
-from materials_research.cabanalab import XAS as xas
+from cabanapy import XAS as xas
 
 ```
 
@@ -45,7 +45,7 @@ from materials_research.cabanalab import XAS as xas
 - The `IDC4` object exports data collected at beamline 4-ID-C at the Advanced Photon Source at Argonne National Laboratory.
 - Syntax for use is as follows:
 ```python
-from materials_research.cabanalab import XAS as xas
+from cabanapy import XAS as xas
 
 dire = "./data/4-ID-C/my_data/" #The directory that contains your data
 base = "MyData" 				#The base name for all your files (e.g. MyData.0001)
@@ -123,7 +123,7 @@ show()
 ## Example
 
 ```python
-from materials_research.cabanalab import TGA as tga
+from cabanapy import TGA as tga
 
 my_sample = tga.TGAFile("../path/to/file.txt", shortname=r'My Sample')
 
@@ -153,7 +153,7 @@ show()
 ## Example
 
 ```python
-from materials_research.cabanalab import XRD as xrd
+from cabanapy import XRD as xrd
 
 my_sample = xrd.BrukerBrmlFile("./path/to/file.brml", shortname=r'LiF as purchased')
 ref_LiF = xrd.ICDDXmlFile("./path/to/file.xml") #defaults to the file name for the legend
@@ -183,7 +183,7 @@ show()
 ## Example
 
 ```python
-from materials_research.cabanalab import EChem as echem
+from cabanapy import EChem as echem
 
 my_battery = echem.MPTFile("./path/to/mptfile", shortname = "My Battery")
 my_battery.show_columns #Shows all columns with index numbers in the file
@@ -229,7 +229,7 @@ This script is a wrapper for [_dm3_lib.py](https://bitbucket.org/piraynal/pydm3r
 
 ## Other functions
 ```python
-from materials_research.cabanalab import TEM as tem
+from cabanapy import TEM as tem
 
 myDM3image = tem.DM3File("./path/to/dm3file", shortname = "My Image")
 myDM3image.plot()
