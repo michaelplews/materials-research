@@ -1,18 +1,13 @@
 <a href=https://travis-ci.org/michaelplews/materials-research><img src="https://travis-ci.org/michaelplews/materials-research.svg?branch=master"></a>
 
 # Contents
-1. [Requirements](#requirements)
+1. [Installation Requirements](#requirements)
 2. [X-Ray Absorption Spectroscopy (XAS.py)](#x-ray-absorption-spectroscopy-xaspy)
 3. [Thermogravimetric Analysis (TGA.py)](#thermogravimetric-analysis-tgapy)
 4. [X-Ray Diffraction (XRD.py)](#x-ray-diffraction-xrdpy)
 5. [Electrochemistry (EChem.py)](#electrochemistry-echempy)
 6. [Transmission Electron Microscopy (TEM.py)](#transmission-electron-microscopy-tempy)
 
-# Author
-
-The original author of this package can be found at https://github.com/michaelplews/materials-research. I have
-downloaded, updated, rearranged, and simplified the installation and usage of this package. Will Eventually make it 
-pip installable.
 
 # Installation Requirements
 
@@ -21,8 +16,8 @@ Requirements can be installed with:
 
 conda create -n cabanalab python=3.6
 source activate cabanalab
-git clone git@github.com:WilliamJudge94/materials_research.git
-pip3 install -r materials_research/requirements.txt
+git clone git@github.com:michaelplews/materials-research.git
+pip3 install -r materials-research/requirements.txt
 pip3 install ipykernel
 ipython kernel install --user --name=cabanalab
 
@@ -36,7 +31,7 @@ Requirements to be used in Jupyter Lab/Notebook - use cabanalab kernel
 import sys
 
 # Showing which directory you installed this to
-sys.path.append('/path/to/materials_research')
+sys.path.append('/path/to/materials-research')
 
 # Example importing of XAS module
 from materials_research.cabanalab import XAS as xas
